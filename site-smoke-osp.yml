@@ -2,7 +2,29 @@
   gather_facts: false
   tasks:
   - name: OpenStack servers
+    os_server_info:
+      cloud: openstack
+      region_name: regionOne
+    register: r_os_servers
+
+  - name: Add host
+    loop: "{{ r_os_servers.openstack_servers }}"
+    add_host:
+      name: "{{ item.public_v4 }}"
+      ansible_user: cloud-user
+      group:
+        - "{{ item.metadata.group }}"
+        - "{{ item.metadata.deployment_name  }}"
+
   - name: Curl website
+    uri:
+      url: "http://{{ groups.load_balancers[0] }}/ping"
+      return_content: yes
+    until: '"alive" in result.content'
+    retries: 10
+    delay: 1
+    register: result
+    delegate_to: localhost
 
   - name: Fail if 'Ansible has done its job' is not in the page content
     fail:

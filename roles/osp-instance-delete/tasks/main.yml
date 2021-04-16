@@ -1,5 +1,25 @@
 ---
 # tasks file for roles/osp-instance-delete
   - name: Fetch Instance Info
+    os_server_info:
+      cloud: openstack
+      region_name: regionOne
+    register: r_os_servers
+
+  - name: Add host
+    loop: "{{ r_os_servers.openstack_servers }}"
+    add_host:
+      name: "{{ item.public_v4 }}"
+      ansible_user: cloud-user
+      group:
+        - "{{ item.metadata.group }}"
+        - "{{ item.metadata.deployment_name  }}"
+
   - name: Delete instances
-   
+    loop: "{{ osp_servers }}"
+    loop_control:
+      loop_var: _instance
+    os_server:
+      cloud: openstack
+      name: "{{ _instance.name }}"
+      state: absent

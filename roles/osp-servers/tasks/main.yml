@@ -1,3 +1,44 @@
 ---
-
-# tasks file for osp.servers
+- name: Create instances
+  loop: 
+    - "{{ osp_servers.frontend }}"
+    - "{{ osp_servers.app1 }}"
+    - "{{ osp_servers.app2 }}"
+    - "{{ osp_servers.db }}"
+  loop_control:
+    loop_var: _instance
+  os_server:
+    cloud: openstack
+    name: "{{ _instance.name }}"
+    image: "{{ _instance.image }}"
+    key_name: "{{ _instance.key_name }}"
+    flavor: "{{ _instance.flavor }}"
+    security_groups: "{{ _instance.security_group }}"
+    delete_fip: yes
+    wait: no
+    nics:
+      - net-name: int_network
+    meta: "{{ _instance.meta }}"
+    userdata: |
+      #!/bin/bash
+      #curl -o /tmp/openstack.pub http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      #cat /tmp/openstack.pub >> /home/cloud-user/.ssh/authorized_keys
+      echo "{{ lookup('file', '/root/.ssh/openstack.pub') }}" >> /home/cloud-user/.ssh/authorized_keys
+      curl -o /etc/yum.repos.d/internal.repo https://www.opentlc.com/download/ansible_bootcamp/repo/internal.repo
+  
+- name: Associate floating IP to instances
+  loop:
+    - "{{ osp_servers.frontend }}"
+    - "{{ osp_servers.app1 }}"
+    - "{{ osp_servers.app2 }}"
+    - "{{ osp_servers.db }}"
+  loop_control:
+    loop_var: _instance
+  os_floating_ip:
+    cloud: openstack
+    state: "{{ _instance.state }}"
+    reuse: yes
+    server: "{{ _instance.name }}"
+    network: ext_network
+    wait: true
+    timeout: 200
