@@ -1,23 +1,5 @@
 ---
 - name: Create instances
-  os_server:
-    cloud: openstack
-    name: myserver
-    image: rhel-guest
-    key_name: ansible_ssh
-    flavor: m1.medium
-    security_groups: apps
-    delete_fip: yes
-    wait: no
-    nics:
-      - net-name: int_network
-    meta: "group=testservers, deployment_name=Dev"
-    userdata: |
-      #!/bin/bash
-      curl -o /tmp/openstack.pub http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
-      cat /tmp/openstack.pub >> /home/cloud-user/.ssh/authorized_keys
-
-- name: Create instances
   loop: 
     - "{{ osp_servers.frontend }}"
     - "{{ osp_servers.app1 }}"
@@ -34,7 +16,7 @@
     wait: no
     nics:
       - net-name: int_network
-    meta: "{{ item.meta }}"
+    meta: "group={{ item.meta.group }},deployment_name={{ item.meta.deployment_name }}"
     userdata: |
       #!/bin/bash
       curl -o /tmp/openstack.pub http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
