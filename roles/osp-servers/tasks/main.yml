@@ -3,7 +3,7 @@
   os_server:
     cloud: openstack
     name: myserver
-    image: rhel-7.6
+    image: rhel-guest
     key_name: ansible_ssh
     flavor: m2.medium
     security_groups: apps
