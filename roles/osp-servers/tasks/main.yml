@@ -5,7 +5,7 @@
     name: myserver
     image: rhel-guest
     key_name: ansible_ssh
-    flavor: m2.medium
+    flavor: m1.medium
     security_groups: apps
     delete_fip: yes
     wait: no
